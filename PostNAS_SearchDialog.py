@@ -122,7 +122,7 @@ class PostNAS_SearchDialog(QDialog, Ui_PostNAS_SearchDialogBase):
             #------------------------------------------ Eigentümer suchen
             if(self.accessControl.checkAccessControlIsActive() == False or self.accessControl.checkUserHasEigentuemerAccess() == True):
                 if(self.checkPostnasSeachTable() == True):
-                    sqlEigentuemer = "SELECT gml_id FROM postnas_search WHERE vector @@ to_tsquery('german', '" + self.getSearchStringEigentuemer() + "') AND typ = 'eigentuemer'"
+                    sqlEigentuemer = "SELECT gml_id FROM postnas_search_eigentuemer WHERE vector @@ to_tsquery('german', '" + self.getSearchStringEigentuemer() + "')"
                 else:
                     sqlEigentuemer = "SELECT ax_person.gml_id FROM ax_person WHERE to_tsvector('german',CASE WHEN nachnameoderfirma IS NOT NULL THEN nachnameoderfirma || ' ' || reverse(nachnameoderfirma) || ' ' ELSE '' END || CASE WHEN vorname IS NOT NULL THEN vorname || ' ' || reverse(vorname) || ' ' ELSE '' END || CASE WHEN geburtsname IS NOT NULL THEN geburtsname || ' ' || reverse(geburtsname) ELSE '' END || CASE WHEN namensbestandteil IS NOT NULL THEN namensbestandteil || ' ' || reverse(namensbestandteil) ELSE '' END || CASE WHEN akademischergrad IS NOT NULL THEN akademischergrad || ' ' || reverse(akademischergrad) ELSE '' END)  @@ to_tsquery('german', '" + self.getSearchStringEigentuemer() + "') AND endet IS NULL"
                 query.exec_(sqlEigentuemer)
@@ -549,14 +549,14 @@ class PostNAS_SearchDialog(QDialog, Ui_PostNAS_SearchDialogBase):
             query = QSqlQuery(self.db)
 
             if(self.checkPostnasSeachTable() == True):
-                sqlEigentuemer = "SELECT * FROM (SELECT ax_person.gml_id,nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad FROM postnas_search \
+                sqlEigentuemer = "SELECT * FROM (SELECT ax_person.gml_id,nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad FROM postnas_search_eigentuemer as postnas_search \
                 JOIN ax_person ON ax_person.gml_id = postnas_search.gml_id  \
                 JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL \
                 JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL \
                 WHERE vector @@ to_tsquery('german','"+self.getSearchStringEigentuemer()+"') \
                 UNION \
                 SELECT ax_person.gml_id,nachnameoderfirma,vorname,geburtsname,namensbestandteil,akademischergrad \
-                FROM postnas_search \
+                FROM postnas_search_eigentuemer as postnas_search \
                 JOIN ax_person ON ax_person.gml_id = postnas_search.gml_id AND ax_person.endet IS NULL \
                 JOIN ax_namensnummer ON ax_person.gml_id = ax_namensnummer.benennt AND ax_namensnummer.endet IS NULL \
                 JOIN ax_buchungsblatt ON ax_buchungsblatt.gml_id = ax_namensnummer.istbestandteilvon AND ax_buchungsblatt.endet IS NULL \
